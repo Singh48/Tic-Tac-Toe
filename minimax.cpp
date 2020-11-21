@@ -86,7 +86,7 @@ class Game
             //printBoard();
             if (c)
             {
-                mv = minimax(1);
+                mv = minimax(1, INT_MIN, INT_MAX);
                 board[mv->x][mv->y] = cmp;
                 cout << "Computer's Turn: \n";
                 printBoard();
@@ -97,6 +97,12 @@ class Game
                 cout << "Your Turn: \n";
                 cout << "Enter row and column: ";
                 cin >> i >> j;
+                while (1)
+                {
+                    if (board[i][j] == emt) break;
+                    cout << "Already Filled, Select an Empty cell\n";
+                    cin >> i >> j;
+                }
                 board[i][j] = usr;
                 printBoard();
                 c = 1;
@@ -149,7 +155,7 @@ class Game
         return false;
     }
 
-    moves* minimax(int isMax)//, int alpha, int b)
+    moves* minimax(int isMax, int alpha, int beta)
     {
         //cout << "minimax : \n";
         moves* mv = new moves();
@@ -164,13 +170,15 @@ class Game
                     if (board[i][j] == emt)
                     {
                         board[i][j] = cmp;
-                        score = minimizer();
+                        score = minimizer(alpha, beta);
                         if (score > max_score)
                         {
                             max_score = score;
                             mv->x = i;
                             mv->y = j;
                         }
+                        if (max_score > alpha)
+                            alpha = max_score;
                         board[i][j] = emt;
                         //cout << i << " " << j << endl;
                     }
@@ -180,7 +188,7 @@ class Game
         return mv;
     }
 
-    int minimizer()
+    int minimizer(int alpha, int beta)
     {
         //cout << "\tminimizer\n";
         int score = evaluate();
@@ -196,6 +204,7 @@ class Game
         }
 
         int min_score = INT_MAX;
+        int brk = 0;
         for (int i=0; i<3; i++)
         {
             for (int j=0; j<3; j++)
@@ -203,20 +212,30 @@ class Game
                 if (board[i][j] == emt)
                 {
                     board[i][j] = usr;
-                    score = maximizer();
+                    score = maximizer(alpha, beta);
                     if (score < min_score)
                     {
                         min_score = score;
                     }
+                    if (min_score < beta)
+                    {
+                        beta = min_score;
+                    }
                     board[i][j] = emt;
+                    if (beta <= alpha)
+                    {
+                        brk = 1;
+                        break;
+                    }
                 }
+                if (brk) break;
             }
         }
         //cout << "\tmin_score = " << min_score << endl;
         return min_score;
     }
 
-    int maximizer()
+    int maximizer(int alpha, int beta)
     {
         //cout << "\tmaximizer\n";
         int score = evaluate();
@@ -232,6 +251,7 @@ class Game
         }
 
         int max_score = INT_MIN;
+        int brk = 0;
         for (int i=0; i<3; i++)
         {
             for (int j=0; j<3; j++)
@@ -239,14 +259,24 @@ class Game
                 if (board[i][j] == emt)
                 {
                     board[i][j] = cmp;
-                    score = minimizer();
+                    score = minimizer(alpha, beta);
                     if (score > max_score)
                     {
                         max_score = score;
                     }
+                    if (max_score > alpha)
+                    {
+                        alpha = max_score;
+                    }
                     board[i][j] = emt;
+                    if (beta <= alpha)
+                    {
+                        brk = 1;
+                        break;
+                    }
                 }
             }
+            if (brk) break;
         }
         //cout << "\t max_score = " << max_score << endl;
         return max_score;
